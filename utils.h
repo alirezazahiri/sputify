@@ -9,72 +9,101 @@
 
 #include "structs.h"
 #include "enums.h"
+#include "entities.h"
 
-
-// * HELPERS
-std::string join(std::vector<std::string> list, std::string __delim = ",")
+// * ENTITY_UTILS
+int loginUser(std::vector<User> &users, std::string username, std::string password)
 {
-    std::string res = "";
-    size_t size = list.size();
-    for (size_t i = 0; i < size; i++)
+    for (size_t i = 0; i < users.size(); ++i)
     {
-        res += list[i];
-        if (i < size - 1)
-            res += __delim;
+        if (users[i].username == username)
+        {
+            if (users[i].password == password)
+            {
+                users[i].status.isLoggedIn = true;
+                return i;
+            }
+            else
+                throw(ErrorType::PERMISSION_DENIED_ERROR);
+        }
     }
-    return res;
+    return -1;
 }
-std::vector<std::string> split(std::string line, std::string delim)
+bool checkUsernameExists(std::vector<User> &users, std::string username)
 {
-    std::vector<std::string> res;
-
-    size_t start = 0;
-    size_t end = line.find(delim);
-
-    while (end != std::string::npos)
+    for (size_t i = 0; i < users.size(); ++i)
     {
-        res.push_back(line.substr(start, end - start));
-        start = end + delim.length();
-        end = line.find(delim, start);
+        if (users[i].username == username)
+        {
+            return true;
+        }
     }
-
-    res.push_back(line.substr(start));
-
-    return res;
-}
-std::string timeToHHMMSS(Time t, bool __zeroSpan = false)
-{
-    std::ostringstream ss;
-    if (__zeroSpan)
-    {
-        if (t.hour)
-            ss << std::setw(2) << std::setfill('0') << t.hour << ":" << std::setw(2) << std::setfill('0') << t.minute << ":" << std::setw(2) << std::setfill('0') << t.second;
-        else
-            ss << std::setw(2) << std::setfill('0') << t.minute << ":" << std::setw(2) << std::setfill('0') << t.second;
-    }
-    else
-    {
-        if (t.hour)
-            ss << t.hour << ":" << std::setw(2) << std::setfill('0') << t.minute << ":" << std::setw(2) << std::setfill('0') << t.second;
-        else
-            ss << t.minute << ":" << t.second;
-    }
-    return ss.str();
-}
-int hhmmssToSeconds(Time t)
-{
-    return t.hour * 60 * 60 + t.minute * 60 + t.second;
+    return false;
 }
 
-Time secondsToHHMMSS(int seconds)
+int findMusicIndexById(std::vector<Music> musics, int id)
 {
-    Time result;
+    for (size_t i = 0; i < musics.size(); i++)
+    {
+        if (musics[i].id == id)
+            return i;
+    }
+    return -1;
+}
+int findUserIndexById(std::vector<User> users, int id)
+{
+    for (size_t i = 0; i < users.size(); i++)
+    {
+        if (users[i].id == id)
+            return i;
+    }
+    return -1;
+}
 
-    result.hour = seconds / 3600;
-    result.minute = (seconds % 3600) / 60;
-    result.second = seconds % 60;
+int findPlaylistByName(std::vector<PlayList> playlists, std::string name)
+{
+    for (size_t i = 0; i < playlists.size(); i++)
+    {
+        if (name == playlists[i].name)
+            return i;
+    }
+    return -1;
+}
 
-    return result;
+int requestVerb(std::string request)
+{
+    if (request == "GET")
+        return Requests::GET;
+    else if (request == "POST")
+        return Requests::POST;
+    else if (request == "PUT")
+        return Requests::PUT;
+    else if (request == "DELETE")
+        return Requests::DELETE;
+    return -1;
+}
+
+void showErrorMessage(ErrorType errorType)
+{
+    switch (errorType)
+    {
+    case ErrorType::BAD_REQUEST_ERROR:
+        std::cout << "Bad Request";
+        break;
+    case ErrorType::NOT_FOUND_ERROR:
+        std::cout << "Not Found";
+        break;
+    case ErrorType::PERMISSION_DENIED_ERROR:
+        std::cout << "Permission Denied";
+        break;
+    case ErrorType::EMPTY_ERROR:
+        std::cout << "Empty";
+        break;
+    default:
+        std::cout << "Not Implemented";
+        break;
+    }
+    std::cout << std::endl;
 }
 
 #endif
