@@ -6,6 +6,7 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
+#include <map>
 
 #include "structs.h"
 #include "enums.h"
@@ -138,6 +139,64 @@ void showErrorMessage(ErrorType errorType)
     std::cout << std::endl;
 }
 
+std::map<std::string, std::string> parseCommandString(const std::string &commandString)
+{
+    std::map<std::string, std::string> result;
 
+    std::istringstream iss(commandString);
+    std::vector<std::string> tokens;
+    std::string token;
+
+    while (iss >> token)
+        tokens.push_back(token);
+
+    int i = 0;
+    std::vector<std::string> keys, values;
+    while (i < tokens.size() && tokens[i] != "?")
+        i++;
+    i++;
+    while (i < tokens.size())
+    {
+        std::string value = "", key = "";
+        std::string tk = tokens[i];
+
+        if (tokens[i][0] == '<' && tokens[i][tokens[i].length() - 1] == '>')
+        {
+            value = tokens[i].substr(1, tokens[i].size() - 2);
+        }
+        else if (tokens[i][0] == '<')
+        {
+            std::vector<std::string> tokenSubset;
+            while (tokens[i][tokens[i].length() - 1] != '>')
+                tokenSubset.push_back(tokens[i++]);
+            tokenSubset.push_back(tokens[i]);
+            value = join(tokenSubset, " ");
+            value = value.substr(1, value.length() - 2);
+        }
+        else if (tokens[i][0] != '<' && tokens[i][tokens[i].length() - 1] != '>')
+        {
+            key = tokens[i];
+        }
+
+        if (value != "")
+            values.push_back(value);
+        if (key != "")
+            keys.push_back(key);
+        i++;
+    }
+
+    if (values.size() == keys.size() && values.size() > 0)
+    {
+        for (size_t i = 0; i < values.size(); i++)
+        {
+            result[keys[i]] = values[i];
+        }
+    }
+    else
+    {
+        throw ErrorType::BAD_REQUEST_ERROR;
+    }
+    return result;
+}
 
 #endif

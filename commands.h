@@ -22,49 +22,40 @@ void signupCommand(std::string command, std::vector<User> *users, int *currentUs
      * size = 9
      * indexes: username = 4, password = 6, mode = 8
      */
-    std::istringstream iss(command);
-    std::vector<std::string> tokens;
-    std::string token;
-
-    User user;
-
-    while (iss >> token)
-    {
-        tokens.push_back(token);
-    }
 
     bool isBadRequest = false;
 
-    if (tokens[0] == "POST" && tokens.size() > 8)
+    User user;
+    std::map<std::string, std::string> tokenValueMap = parseCommandString(command);
+
+    for (const auto &pair : tokenValueMap)
     {
-        if (tokens[1] == "signup" &&
-            tokens[3] == "username" &&
-            tokens[5] == "password" &&
-            tokens[7] == "mode")
+        if (pair.first == "username")
         {
-            user.username = tokens[4].substr(1, tokens[4].size() - 2);
-
-            bool usernameExists = checkUsernameExists(*users, user.username);
-            if (usernameExists)
-                throw(ErrorType::BAD_REQUEST_ERROR);
-
-            user.password = tokens[6].substr(1, tokens[6].size() - 2);
-
-            std::string mode = tokens[8].substr(1, tokens[8].size() - 2);
-            if (mode == "user" || mode == "USER")
+            user.username = pair.second;
+        }
+        else if (pair.first == "password")
+        {
+            user.password = pair.second;
+        }
+        else if (pair.first == "mode")
+        {
+            if (pair.second == "user")
                 user.status.mode = UserMode::USER;
-            else if (mode == "artist" || mode == "ARTIST")
+            else if (pair.second == "artist")
                 user.status.mode = UserMode::ARTIST;
             else
+            {
                 isBadRequest = true;
-
-            user.status.isLoggedIn = true;
+                break;
+            }
         }
         else
+        {
             isBadRequest = true;
+            break;
+        }
     }
-    else
-        isBadRequest = true;
 
     if (isBadRequest)
         throw(ErrorType::BAD_REQUEST_ERROR);
@@ -73,8 +64,8 @@ void signupCommand(std::string command, std::vector<User> *users, int *currentUs
         user.id = 1;
     else
     {
-        int lastUserIndex = users->size();
-        user.id = (*users)[users->size() - 1].id;
+        int lastUserIndex = users->size() - 1;
+        user.id = (*users)[lastUserIndex].id + 1;
     }
 
     user.musics = {};
@@ -97,34 +88,30 @@ void loginCommand(std::string command, std::vector<User> *users, int *currentUse
      * size = 7
      * indexes: username = 4, password = 6
      */
-    std::istringstream iss(command);
-    std::vector<std::string> tokens;
-    std::string token;
-
-    while (iss >> token)
-    {
-        tokens.push_back(token);
-    }
 
     bool isBadRequest = false;
 
     std::string username;
     std::string password;
 
-    if (tokens[0] == "POST" && tokens.size() > 6)
+    std::map<std::string, std::string> tokenValueMap = parseCommandString(command);
+
+    for (const auto &pair : tokenValueMap)
     {
-        if (tokens[1] == "login" &&
-            tokens[3] == "username" &&
-            tokens[5] == "password")
+        if (pair.first == "username")
         {
-            username = tokens[4].substr(1, tokens[4].size() - 2);
-            password = tokens[6].substr(1, tokens[6].size() - 2);
+            username = pair.second;
+        }
+        else if (pair.first == "password")
+        {
+            password = pair.second;
         }
         else
+        {
             isBadRequest = true;
+            break;
+        }
     }
-    else
-        isBadRequest = true;
 
     if (isBadRequest)
         throw(ErrorType::BAD_REQUEST_ERROR);
@@ -231,30 +218,23 @@ void getMusicByIdCommand(std::string command, std::vector<User> *users, int *cur
      * indexes: id = 4
      */
 
-    std::istringstream iss(command);
-    std::vector<std::string> tokens;
-    std::string token;
-
-    while (iss >> token)
-    {
-        tokens.push_back(token);
-    }
-
     bool isBadRequest = false;
-
     int id;
 
-    if (tokens[0] == "GET" && tokens.size() > 2)
+    std::map<std::string, std::string> tokenValueMap = parseCommandString(command);
+
+    for (const auto &pair : tokenValueMap)
     {
-        if (tokens[1] == "musics" && tokens[3] == "id")
+        if (pair.first == "id")
         {
-            id = stoi(tokens[4].substr(1, tokens[4].size() - 2));
+            id = stoi(pair.second);
         }
         else
+        {
             isBadRequest = true;
+            break;
+        }
     }
-    else
-        isBadRequest = true;
 
     if (isBadRequest)
         throw ErrorType::BAD_REQUEST_ERROR;
@@ -320,30 +300,23 @@ void getUserByIdCommand(std::string command, std::vector<User> *users, int *curr
      * indexes: id = 4
      */
 
-    std::istringstream iss(command);
-    std::vector<std::string> tokens;
-    std::string token;
-
-    while (iss >> token)
-    {
-        tokens.push_back(token);
-    }
-
     bool isBadRequest = false;
-
     int id;
 
-    if (tokens[0] == "GET" && tokens.size() > 2)
+    std::map<std::string, std::string> tokenValueMap = parseCommandString(command);
+
+    for (const auto &pair : tokenValueMap)
     {
-        if (tokens[1] == "users" && tokens[3] == "id")
+        if (pair.first == "id")
         {
-            id = stoi(tokens[4].substr(1, tokens[4].size() - 2));
+            id = stoi(pair.second);
         }
         else
+        {
             isBadRequest = true;
+            break;
+        }
     }
-    else
-        isBadRequest = true;
 
     if (isBadRequest)
         throw ErrorType::BAD_REQUEST_ERROR;
@@ -370,29 +343,23 @@ void createPlaylistCommand(std::string command, std::vector<User> *users, int *c
      * indexes: name = 4
      */
 
-    std::istringstream iss(command);
-    std::vector<std::string> tokens;
-    std::string token;
-
-    while (iss >> token)
-    {
-        tokens.push_back(token);
-    }
-
     bool isBadRequest = false;
-
     std::string playlistName;
-    if (tokens[0] == "POST" && tokens.size() > 4)
+
+    std::map<std::string, std::string> tokenValueMap = parseCommandString(command);
+
+    for (const auto &pair : tokenValueMap)
     {
-        if (tokens[1] == "playlist" && tokens[3] == "name")
+        if (pair.first == "name")
         {
-            playlistName = tokens[4].substr(1, tokens[4].size() - 2);
+            playlistName = pair.second;
         }
         else
+        {
             isBadRequest = true;
+            break;
+        }
     }
-    else
-        isBadRequest = true;
 
     int playlistIndex = findPlaylistByName((*users)[*currentUser].playlists, playlistName);
 
@@ -423,30 +390,23 @@ void getUserPlaylistsCommand(std::string command, std::vector<User> *users, int 
      * indexes: id = 4
      */
 
-    std::istringstream iss(command);
-    std::vector<std::string> tokens;
-    std::string token;
-
-    while (iss >> token)
-    {
-        tokens.push_back(token);
-    }
-
     bool isBadRequest = false;
-
     int id;
 
-    if (tokens[0] == "GET" && tokens.size() > 2)
+    std::map<std::string, std::string> tokenValueMap = parseCommandString(command);
+
+    for (const auto &pair : tokenValueMap)
     {
-        if (tokens[1] == "playlist" && tokens[3] == "id")
+        if (pair.first == "id")
         {
-            id = stoi(tokens[4].substr(1, tokens[4].size() - 2));
+            id = stoi(pair.second);
         }
         else
+        {
             isBadRequest = true;
+            break;
+        }
     }
-    else
-        isBadRequest = true;
 
     if (isBadRequest)
         throw ErrorType::BAD_REQUEST_ERROR;
@@ -473,31 +433,28 @@ void addMusicToPlaylistCommand(std::string command, std::vector<User> *users, in
      * indexes: name = 4, id = 6
      */
 
-    std::istringstream iss(command);
-    std::vector<std::string> tokens;
-    std::string token;
-
-    while (iss >> token)
-    {
-        tokens.push_back(token);
-    }
-
     bool isBadRequest = false;
-
     std::string playlistName;
     int id;
-    if (tokens[0] == "PUT" && tokens.size() > 4)
+
+    std::map<std::string, std::string> tokenValueMap = parseCommandString(command);
+
+    for (const auto &pair : tokenValueMap)
     {
-        if (tokens[1] == "add_playlist" && tokens[3] == "name" && tokens[5] == "id")
+        if (pair.first == "id")
         {
-            playlistName = tokens[4].substr(1, tokens[4].size() - 2);
-            id = stoi(tokens[6].substr(1, tokens[6].size() - 2));
+            id = stoi(pair.second);
+        }
+        else if (pair.first == "name")
+        {
+            playlistName = pair.second;
         }
         else
+        {
             isBadRequest = true;
+            break;
+        }
     }
-    else
-        isBadRequest = true;
 
     if (isBadRequest)
         throw ErrorType::BAD_REQUEST_ERROR;
@@ -508,8 +465,16 @@ void addMusicToPlaylistCommand(std::string command, std::vector<User> *users, in
     {
         PlayList playlist = (*users)[*currentUser].playlists[playlistIndex];
         int musicIndex = findMusicIndexById(*musics, id);
+        if (musicIndex == -1)
+            throw ErrorType::NOT_FOUND_ERROR;
         playlist.musics.push_back((*musics)[musicIndex]);
+        int sum = 0;
+        for (const Music m: playlist.musics) {
+            sum += timeToSeconds(m.duration);
+        }
+        playlist.duration = secondsToTime(sum);
         (*users)[*currentUser].playlists[playlistIndex] = playlist;
+        
     }
     else
         throw ErrorType::NOT_FOUND_ERROR;
@@ -531,50 +496,24 @@ void searchMusicCommand(std::string command, std::vector<User> *users, int *curr
      * indexes: name = 4, id = 6
      */
 
-    std::istringstream iss(command);
-    std::vector<std::string> tokens;
-    std::string token;
-
-    while (iss >> token)
-    {
-        tokens.push_back(token);
-    }
-
     bool isBadRequest = false;
     std::string name = "", artist = "", tag = "";
-    std::map<std::string, std::string> queryParams;
+    std::map<std::string, std::string> tokenValueMap = parseCommandString(command);
 
-    if (tokens[0] == "GET" && tokens.size() > 4)
+    for (const auto &pair : tokenValueMap)
     {
-        if (tokens[1] == "search_music")
+        if (pair.first == "name")
         {
-            if (tokens.size() < 9)
-            {
-                queryParams[tokens[3]] = tokens[4].substr(1, tokens[4].size() - 2);
-                queryParams[tokens[5]] = tokens[6].substr(1, tokens[6].size() - 2);
-            }
-            else
-            {
-                queryParams[tokens[3]] = tokens[4].substr(1, tokens[4].size() - 2);
-                queryParams[tokens[5]] = tokens[6].substr(1, tokens[6].size() - 2);
-                queryParams[tokens[7]] = tokens[8].substr(1, tokens[8].size() - 2);
-            }
+            name = pair.second;
         }
-        else
-            isBadRequest = true;
-    }
-    else
-        isBadRequest = true;
-
-    for (auto it = queryParams.begin(); it != queryParams.end(); ++it)
-    {
-        std::string key = it->first, value = it->second;
-        if (key == "name")
-            name = value;
-        else if (key == "artist")
-            artist = value;
-        else if (key == "tag")
-            tag = value;
+        else if (pair.first == "artist")
+        {
+            artist = pair.second;
+        }
+        else if (pair.first == "tag")
+        {
+            tag = pair.second;
+        }
         else
         {
             isBadRequest = true;
@@ -609,40 +548,43 @@ void shareMusicCommand(std::string command, std::vector<User> *users, int *curre
      * indexes: title = 3, path = 5, year = 7, album = 9, tags = 11, duration = 13
      */
 
-    std::istringstream iss(command);
-    std::vector<std::string> tokens;
-    std::string token;
-
-    while (iss >> token)
-    {
-        tokens.push_back(token);
-    }
-
     bool isBadRequest = false;
-
     Music music;
-    if (tokens[0] == "POST" && tokens.size() > 14)
+
+    std::map<std::string, std::string> tokenValueMap = parseCommandString(command);
+
+    for (const auto &pair : tokenValueMap)
     {
-        if (tokens[1] == "music" &&
-            tokens[3] == "title" &&
-            tokens[5] == "path" &&
-            tokens[7] == "year" &&
-            tokens[9] == "album" &&
-            tokens[11] == "tags" &&
-            tokens[13] == "duration")
+        if (pair.first == "title")
         {
-            music.name = tokens[4].substr(1, tokens[4].size() - 2);
-            music.path = tokens[6].substr(1, tokens[6].size() - 2);
-            music.year = stoi(tokens[8].substr(1, tokens[8].size() - 2));
-            music.album = tokens[10].substr(1, tokens[10].size() - 2);
-            music.tags = split(tokens[12].substr(1, tokens[12].size() - 2), ";");
-            music.duration = strToTime(tokens[14].substr(1, tokens[14].size() - 2));
+            music.name = pair.second;
+        }
+        else if (pair.first == "path")
+        {
+            music.path = pair.second;
+        }
+        else if (pair.first == "year")
+        {
+            music.year = stoi(pair.second);
+        }
+        else if (pair.first == "album")
+        {
+            music.album = pair.second;
+        }
+        else if (pair.first == "tags")
+        {
+            music.tags = split(pair.second, ";");
+        }
+        else if (pair.first == "duration")
+        {
+            music.duration = strToTime(pair.second);
         }
         else
+        {
             isBadRequest = true;
+            break;
+        }
     }
-    else
-        isBadRequest = true;
 
     *latestMusicID = *latestMusicID + 1;
     music.id = *latestMusicID;
@@ -670,28 +612,23 @@ void deleteMusicCommand(std::string command, std::vector<User> *users, int *curr
      * indexes: id = 3
      */
 
-    std::istringstream iss(command);
-    std::vector<std::string> tokens;
-    std::string token;
-
-    while (iss >> token)
-    {
-        tokens.push_back(token);
-    }
-
     bool isBadRequest = false;
     int id;
-    if (tokens[0] == "DELETE" && tokens.size() > 4)
+
+    std::map<std::string, std::string> tokenValueMap = parseCommandString(command);
+
+    for (const auto &pair : tokenValueMap)
     {
-        if (tokens[1] == "music" && tokens[3] == "id")
+        if (pair.first == "id")
         {
-            id = stoi(tokens[4].substr(1, tokens[4].size() - 2));
+            id = stoi(pair.second);
         }
         else
+        {
             isBadRequest = true;
+            break;
+        }
     }
-    else
-        isBadRequest = true;
 
     if (isBadRequest)
         throw ErrorType::BAD_REQUEST_ERROR;
