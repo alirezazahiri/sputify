@@ -61,6 +61,15 @@ int findUserIndexById(std::vector<User> users, int id)
     }
     return -1;
 }
+int findUserIndexByUsername(std::vector<User> users, std::string username)
+{
+    for (size_t i = 0; i < users.size(); i++)
+    {
+        if (users[i].username == username)
+            return i;
+    }
+    return -1;
+}
 
 int findPlaylistByName(std::vector<PlayList> playlists, std::string name)
 {

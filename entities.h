@@ -92,7 +92,7 @@ void logMusic(Music music, const bool __detail)
     std::cout << music.id << ", " << music.name << ", " << music.artist;
     if (__detail)
     {
-        std::cout << ", " << music.year << ", " << music.album << ", " << join(music.tags, ";") << ", " << timeToHHMMSSFormat(music.duration);
+        std::cout << ", " << music.year << ", " << music.album << ", " << join(music.tags, ";") << ", " << timeToHHMMSSFormat(music.duration, true);
     }
     std::cout << std::endl;
 }

@@ -83,15 +83,12 @@ std::string timeToHHMMSSFormat(Time t, const bool __zeroSpan = false)
     std::ostringstream ss;
     if (__zeroSpan)
     {
-        if (t.hour)
-            ss << std::setw(2) << std::setfill('0') << t.hour << ":" << std::setw(2) << std::setfill('0') << t.minute << ":" << std::setw(2) << std::setfill('0') << t.second;
-        else
-            ss << std::setw(2) << std::setfill('0') << t.minute << ":" << std::setw(2) << std::setfill('0') << t.second;
+        ss << std::setw(2) << std::setfill('0') << t.hour << ":" << std::setw(2) << std::setfill('0') << t.minute << ":" << std::setw(2) << std::setfill('0') << t.second;
     }
     else
     {
         if (t.hour)
-            ss << t.hour << ":" << std::setw(2) << std::setfill('0') << t.minute << ":" << std::setw(2) << std::setfill('0') << t.second;
+            ss << t.hour << ":" << t.minute << ":" << t.second;
         else
             ss << t.minute << ":" << t.second;
     }

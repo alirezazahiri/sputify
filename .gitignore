@@ -1,6 +1,7 @@
 .vscode 
 *.exe
 *.o
+*.out
 *.sh
 *.log
 *.pdf

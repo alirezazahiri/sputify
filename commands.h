@@ -60,6 +60,11 @@ void signupCommand(std::string command, std::vector<User> *users, int *currentUs
     if (isBadRequest)
         throw(ErrorType::BAD_REQUEST_ERROR);
 
+    bool usernameExists = findUserIndexByUsername(*users, user.username) != -1;
+
+    if (usernameExists)
+        throw ErrorType::BAD_REQUEST_ERROR;
+
     if (users->empty())
         user.id = 1;
     else
@@ -469,12 +474,12 @@ void addMusicToPlaylistCommand(std::string command, std::vector<User> *users, in
             throw ErrorType::NOT_FOUND_ERROR;
         playlist.musics.push_back((*musics)[musicIndex]);
         int sum = 0;
-        for (const Music m: playlist.musics) {
+        for (const Music m : playlist.musics)
+        {
             sum += timeToSeconds(m.duration);
         }
         playlist.duration = secondsToTime(sum);
         (*users)[*currentUser].playlists[playlistIndex] = playlist;
-        
     }
     else
         throw ErrorType::NOT_FOUND_ERROR;
@@ -642,8 +647,24 @@ void deleteMusicCommand(std::string command, std::vector<User> *users, int *curr
 
     int artistMusicIndex = findMusicIndexById((*users)[*currentUser].musics, id);
 
+    Time toDeleteMusicDuration = (*users)[*currentUser].musics[artistMusicIndex].duration;
+
     bool removeFromPublicMusics = removeAtIndex(*musics, publicMusicIndex);
     bool removeFromArtistMusics = removeAtIndex((*users)[*currentUser].musics, artistMusicIndex);
+
+    for (auto uit = users->begin(); uit != users->end(); ++uit)
+    {
+        int sum = 0;
+        for (auto pit = uit->playlists.begin(); pit != uit->playlists.end(); ++pit)
+        {
+            int playlistMusicIndex = findMusicIndexById((*pit).musics, id);
+            if (playlistMusicIndex != -1)
+            {
+                bool removeFromUserPlaylistMusics = removeAtIndex((*pit).musics, playlistMusicIndex);
+                pit->duration = secondsToTime(timeToSeconds(pit->duration) - timeToSeconds(toDeleteMusicDuration));
+            }
+        }
+    }
 
     if (removeFromArtistMusics && removeFromPublicMusics)
         std::cout << "OK" << std::endl;
