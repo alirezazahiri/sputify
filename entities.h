@@ -61,7 +61,7 @@ void logUser(User user, const bool __detail)
             {
                 if (i < size - 1)
                     std::cout << user.playlists[i].name << ", ";
-                if (i < size)
+                else
                     std::cout << user.playlists[i].name;
             }
         }
@@ -72,7 +72,7 @@ void logUser(User user, const bool __detail)
             {
                 if (i < size - 1)
                     std::cout << user.musics[i].name << ", ";
-                if (i < size)
+                else
                     std::cout << user.musics[i].name;
             }
         }

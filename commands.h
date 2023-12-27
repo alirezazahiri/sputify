@@ -175,8 +175,8 @@ void logoutCommand(std::string command, std::vector<User> *users, int *currentUs
 // * get user/artist musics
 void getMusicsCommand(std::string command, std::vector<User> *users, int *currentUser, std::vector<Music> *musics)
 {
-    if (*currentUser == -1)
-        throw(ErrorType::PERMISSION_DENIED_ERROR);
+    // if (*currentUser == -1)
+    //     throw(ErrorType::PERMISSION_DENIED_ERROR);
     /*
      * [0]GET [1]musics [2]?
      * size = 3
@@ -215,8 +215,8 @@ void getMusicsCommand(std::string command, std::vector<User> *users, int *curren
 
 void getMusicByIdCommand(std::string command, std::vector<User> *users, int *currentUser, std::vector<Music> *musics)
 {
-    if (*currentUser == -1)
-        throw(ErrorType::PERMISSION_DENIED_ERROR);
+    // if (*currentUser == -1)
+    //     throw(ErrorType::PERMISSION_DENIED_ERROR);
     /*
      * [0]GET [1]musics [2]? [3]id [4]<{id}>
      * size = 5
@@ -257,8 +257,8 @@ void getMusicByIdCommand(std::string command, std::vector<User> *users, int *cur
 // * get user/artist profiles
 void getAllUsersCommand(std::string command, std::vector<User> *users, int *currentUser)
 {
-    if (*currentUser == -1)
-        throw(ErrorType::PERMISSION_DENIED_ERROR);
+    // if (*currentUser == -1)
+    //     throw(ErrorType::PERMISSION_DENIED_ERROR);
     /*
      * [0]GET [1]users [2]?
      * size = 3
@@ -297,8 +297,8 @@ void getAllUsersCommand(std::string command, std::vector<User> *users, int *curr
 
 void getUserByIdCommand(std::string command, std::vector<User> *users, int *currentUser)
 {
-    if (*currentUser == -1)
-        throw(ErrorType::PERMISSION_DENIED_ERROR);
+    // if (*currentUser == -1)
+    //     throw(ErrorType::PERMISSION_DENIED_ERROR);
     /*
      * [0]GET [1]users [2]? [3]id [4]<{id}>
      * size = 5
