@@ -32,4 +32,29 @@ enum UserMode
     ARTIST
 };
 
+enum Command
+{
+    POST_SIGNUP,
+    POST_LOGIN,
+    POST_LOGOUT,
+
+    GET_MUSICS,
+    GET_MUSICS_BY_ID,
+
+    GET_USERS,
+    GET_USERS_BY_ID,
+
+    POST_PLAYLIST,
+    PUT_ADD_PLAYLIST,
+    GET_PLAYLIST_BY_ID, //! here id is user id
+
+    GET_SEARCH_MUSIC,
+
+    //* ARTIST SPECIAL COMMANDS
+    POST_MUSIC,
+    DELETE_MUSIC,
+    GET_REGISTERED_MUSICS
+};
+Command recognizeCommand(std::string command);
+
 #endif

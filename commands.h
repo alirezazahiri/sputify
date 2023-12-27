@@ -5,10 +5,12 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <map>
 
 #include "enums.h"
 #include "entities.h"
 #include "utils.h"
+#include "helpers.h"
 
 // * user account commands
 void signupCommand(std::string command, std::vector<User> *users, int *currentUser)
@@ -214,7 +216,7 @@ void getMusicsCommand(std::string command, std::vector<User> *users, int *curren
     if (musics->empty())
         throw ErrorType::EMPTY_ERROR;
 
-    logAllMusics(*musics);
+    logAllMusics(*musics, false);
 
     return;
 }
@@ -408,7 +410,7 @@ void createPlaylistCommand(std::string command, std::vector<User> *users, int *c
     return;
 }
 
-void getUserPlaylists(std::string command, std::vector<User> *users, int *currentUser)
+void getUserPlaylistsCommand(std::string command, std::vector<User> *users, int *currentUser)
 {
     if (*currentUser == -1)
         throw(ErrorType::PERMISSION_DENIED_ERROR);
@@ -512,6 +514,241 @@ void addMusicToPlaylistCommand(std::string command, std::vector<User> *users, in
         throw ErrorType::NOT_FOUND_ERROR;
 
     std::cout << "OK" << std::endl;
+    return;
+}
+
+// * search music
+void searchMusicCommand(std::string command, std::vector<User> *users, int *currentUser, std::vector<Music> *musics)
+{
+    if (*currentUser == -1)
+        throw(ErrorType::PERMISSION_DENIED_ERROR);
+    if ((*users)[*currentUser].status.mode == UserMode::ARTIST)
+        throw ErrorType::BAD_REQUEST_ERROR;
+    /*
+     * [0]GET [1]search_music [2]? [3]name [4]<{name}> [5]artist [6]<{artist}> [7]tag [8]<{tag}>
+     * size = 7
+     * indexes: name = 4, id = 6
+     */
+
+    std::istringstream iss(command);
+    std::vector<std::string> tokens;
+    std::string token;
+
+    while (iss >> token)
+    {
+        tokens.push_back(token);
+    }
+
+    bool isBadRequest = false;
+    std::string name = "", artist = "", tag = "";
+    std::map<std::string, std::string> queryParams;
+
+    if (tokens[0] == "GET" && tokens.size() > 4)
+    {
+        if (tokens[1] == "search_music")
+        {
+            if (tokens.size() < 9)
+            {
+                queryParams[tokens[3]] = tokens[4].substr(1, tokens[4].size() - 2);
+                queryParams[tokens[5]] = tokens[6].substr(1, tokens[6].size() - 2);
+            }
+            else
+            {
+                queryParams[tokens[3]] = tokens[4].substr(1, tokens[4].size() - 2);
+                queryParams[tokens[5]] = tokens[6].substr(1, tokens[6].size() - 2);
+                queryParams[tokens[7]] = tokens[8].substr(1, tokens[8].size() - 2);
+            }
+        }
+        else
+            isBadRequest = true;
+    }
+    else
+        isBadRequest = true;
+
+    for (auto it = queryParams.begin(); it != queryParams.end(); ++it)
+    {
+        std::string key = it->first, value = it->second;
+        if (key == "name")
+            name = value;
+        else if (key == "artist")
+            artist = value;
+        else if (key == "tag")
+            tag = value;
+        else
+        {
+            isBadRequest = true;
+            break;
+        }
+    }
+
+    if (isBadRequest)
+        throw ErrorType::BAD_REQUEST_ERROR;
+
+    std::vector<Music> foundMusics = findMusics(*musics, name, artist, tag);
+
+    if (foundMusics.empty())
+        throw ErrorType::EMPTY_ERROR;
+
+    logAllMusics(foundMusics, false);
+
+    return;
+}
+
+// * share music by artist
+void shareMusicCommand(std::string command, std::vector<User> *users, int *currentUser, std::vector<Music> *musics, int *latestMusicID)
+{
+    if (*currentUser == -1)
+        throw(ErrorType::PERMISSION_DENIED_ERROR);
+    if ((*users)[*currentUser].status.mode == UserMode::USER)
+        throw ErrorType::BAD_REQUEST_ERROR;
+
+    /*
+     * [0]POST [1]music [2]? [3]title [4]<{title}> [5]path [6]<{path}> [7]year [8]<{year}> [9]album [10]<{album}> [11]tags [12]<{tags}> [13]duration [14]<{duration}>
+     * size = 15
+     * indexes: title = 3, path = 5, year = 7, album = 9, tags = 11, duration = 13
+     */
+
+    std::istringstream iss(command);
+    std::vector<std::string> tokens;
+    std::string token;
+
+    while (iss >> token)
+    {
+        tokens.push_back(token);
+    }
+
+    bool isBadRequest = false;
+
+    Music music;
+    if (tokens[0] == "POST" && tokens.size() > 14)
+    {
+        if (tokens[1] == "music" &&
+            tokens[3] == "title" &&
+            tokens[5] == "path" &&
+            tokens[7] == "year" &&
+            tokens[9] == "album" &&
+            tokens[11] == "tags" &&
+            tokens[13] == "duration")
+        {
+            music.name = tokens[4].substr(1, tokens[4].size() - 2);
+            music.path = tokens[6].substr(1, tokens[6].size() - 2);
+            music.year = stoi(tokens[8].substr(1, tokens[8].size() - 2));
+            music.album = tokens[10].substr(1, tokens[10].size() - 2);
+            music.tags = split(tokens[12].substr(1, tokens[12].size() - 2), ";");
+            music.duration = strToTime(tokens[14].substr(1, tokens[14].size() - 2));
+        }
+        else
+            isBadRequest = true;
+    }
+    else
+        isBadRequest = true;
+
+    latestMusicID++;
+    music.id = *latestMusicID;
+
+    music.artist = (*users)[*currentUser].username;
+
+    (*users)[*currentUser].musics.push_back(music);
+    musics->push_back(music);
+
+    std::cout << "OK" << std::endl;
+
+    return;
+}
+
+void deleteMusicCommand(std::string command, std::vector<User> *users, int *currentUser, std::vector<Music> *musics)
+{
+    if (*currentUser == -1)
+        throw(ErrorType::PERMISSION_DENIED_ERROR);
+    if ((*users)[*currentUser].status.mode == UserMode::USER)
+        throw ErrorType::BAD_REQUEST_ERROR;
+
+    /*
+     * [0]DELETE [1]music [2]? [3]id [4]<{id}>
+     * size = 5
+     * indexes: id = 3
+     */
+
+    std::istringstream iss(command);
+    std::vector<std::string> tokens;
+    std::string token;
+
+    while (iss >> token)
+    {
+        tokens.push_back(token);
+    }
+
+    bool isBadRequest = false;
+    int id;
+    if (tokens[0] == "DELETE" && tokens.size() > 4)
+    {
+        if (tokens[1] == "music" && tokens[3] == "id")
+        {
+            id = stoi(tokens[4].substr(1, tokens[4].size() - 2));
+        }
+        else
+            isBadRequest = true;
+    }
+    else
+        isBadRequest = true;
+
+    if (isBadRequest)
+        throw ErrorType::BAD_REQUEST_ERROR;
+
+    int publicMusicIndex = findMusicIndexById(*musics, id);
+
+    if (publicMusicIndex == -1)
+        throw ErrorType::NOT_FOUND_ERROR;
+    if ((*users)[*currentUser].username != (*musics)[publicMusicIndex].artist)
+        throw ErrorType::PERMISSION_DENIED_ERROR;
+
+    int artistMusicIndex = findMusicIndexById((*users)[*currentUser].musics, id);
+
+    bool removeFromPublicMusics = removeAtIndex(*musics, publicMusicIndex);
+    bool removeFromArtistMusics = removeAtIndex((*users)[*currentUser].musics, artistMusicIndex);
+
+    if (removeFromArtistMusics && removeFromPublicMusics)
+        std::cout << "OK" << std::endl;
+
+    return;
+}
+
+void showRegisteredMusicsCommand(std::string command, std::vector<User> *users, int *currentUser, std::vector<Music> *musics)
+{
+    if (*currentUser == -1)
+        throw(ErrorType::PERMISSION_DENIED_ERROR);
+    if ((*users)[*currentUser].status.mode == UserMode::USER)
+        throw ErrorType::BAD_REQUEST_ERROR;
+
+    /*
+     * [0]GET [1]registered_musics [2]?
+     * size = 3
+     * indexes: -
+     */
+
+    std::istringstream iss(command);
+    std::vector<std::string> tokens;
+    std::string token;
+
+    while (iss >> token)
+    {
+        tokens.push_back(token);
+    }
+
+    bool isBadRequest = false;
+    if (tokens[0] == "GET" && tokens.size() > 2)
+    {
+        if (tokens[1] != "registered_musics")
+            isBadRequest = true;
+    }
+    else
+        isBadRequest = true;
+
+    if (isBadRequest)
+        throw ErrorType::BAD_REQUEST_ERROR;
+
+    logAllMusics((*users)[*currentUser].musics, true);
+
     return;
 }
 

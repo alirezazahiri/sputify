@@ -10,6 +10,7 @@
 #include "structs.h"
 #include "enums.h"
 #include "entities.h"
+#include "helpers.h"
 
 // * ENTITY_UTILS
 int loginUser(std::vector<User> &users, std::string username, std::string password)
@@ -70,6 +71,37 @@ int findPlaylistByName(std::vector<PlayList> playlists, std::string name)
     return -1;
 }
 
+std::vector<Music> findMusics(std::vector<Music> musics, std::string name, std::string artist, std::string tag)
+{
+    std::vector<Music> eligibleMusics;
+
+    for (size_t i = 0; i < musics.size(); i++)
+    {
+        bool isOk = true;
+        if (!includes(musics[i].name, name))
+        {
+            isOk = false;
+            continue;
+        }
+        if (!includes(musics[i].artist, artist))
+        {
+            isOk = false;
+            continue;
+        }
+        if (tag != "")
+        {
+            if (!includes(musics[i].tags, tag))
+            {
+                isOk = false;
+                continue;
+            }
+        }
+        if (isOk)
+            eligibleMusics.push_back(musics[i]);
+    }
+    return eligibleMusics;
+}
+
 int requestVerb(std::string request)
 {
     if (request == "GET")
@@ -105,5 +137,7 @@ void showErrorMessage(ErrorType errorType)
     }
     std::cout << std::endl;
 }
+
+
 
 #endif
