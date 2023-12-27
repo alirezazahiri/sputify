@@ -263,6 +263,7 @@ void getMusicByIdCommand(std::string command, std::vector<User> *users, int *cur
     if (musicIndex == -1)
         throw ErrorType::NOT_FOUND_ERROR;
 
+    std::cout << "ID, Name, Artist, Year, Album, Tags, Duration" << std::endl;
     logMusic((*musics)[musicIndex], true);
 
     return;
@@ -643,7 +644,7 @@ void shareMusicCommand(std::string command, std::vector<User> *users, int *curre
     else
         isBadRequest = true;
 
-    latestMusicID++;
+    *latestMusicID = *latestMusicID + 1;
     music.id = *latestMusicID;
 
     music.artist = (*users)[*currentUser].username;
@@ -746,6 +747,8 @@ void showRegisteredMusicsCommand(std::string command, std::vector<User> *users, 
 
     if (isBadRequest)
         throw ErrorType::BAD_REQUEST_ERROR;
+    if ((*users)[*currentUser].musics.empty())
+        throw ErrorType::EMPTY_ERROR;
 
     logAllMusics((*users)[*currentUser].musics, true);
 

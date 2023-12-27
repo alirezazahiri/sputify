@@ -24,10 +24,9 @@ int main()
         {
             string input;
             getline(cin, input);
+            if (input=="") break;
             Command cmd = recognizeCommand(input);
             execute(cmd, input, &users, &musics, &currentUser, &latestMusicID);
-
-            cout << currentUser << endl;
         }
         catch (ErrorType errorType)
         {

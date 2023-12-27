@@ -47,7 +47,7 @@ struct User
 
 void logUser(User user, const bool __detail)
 {
-    if (__detail)
+    if (!__detail)
         std::cout << user.id << ", " << (user.status.mode == UserMode::USER ? "user" : "artist") << ", " << user.username << ", " << (user.status.mode == UserMode::USER ? user.playlists.size() : user.musics.size()) << std::endl;
     else
     {
