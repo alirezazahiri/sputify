@@ -78,7 +78,7 @@ Command recognizeCommand(std::string command)
             return Command::GET_REGISTERED_MUSICS;
         }
         else
-            throw ErrorType::BAD_REQUEST_ERROR;
+            throw ErrorType::NOT_FOUND_ERROR;
     }
     else if (tokens[0] == "POST")
     {
@@ -103,7 +103,7 @@ Command recognizeCommand(std::string command)
             return Command::POST_MUSIC;
         }
         else
-            throw ErrorType::BAD_REQUEST_ERROR;
+            throw ErrorType::NOT_FOUND_ERROR;
     }
     else if (tokens[0] == "PUT")
     {
@@ -112,7 +112,7 @@ Command recognizeCommand(std::string command)
             return Command::PUT_ADD_PLAYLIST;
         }
         else
-            throw ErrorType::BAD_REQUEST_ERROR;
+            throw ErrorType::NOT_FOUND_ERROR;
     }
     else if (tokens[0] == "DELETE")
     {
@@ -121,7 +121,7 @@ Command recognizeCommand(std::string command)
             return Command::DELETE_MUSIC;
         }
         else
-            throw ErrorType::BAD_REQUEST_ERROR;
+            throw ErrorType::NOT_FOUND_ERROR;
     }
     else
         throw ErrorType::BAD_REQUEST_ERROR;

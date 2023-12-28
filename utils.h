@@ -7,6 +7,7 @@
 #include <sstream>
 #include <iomanip>
 #include <map>
+#include <algorithm>
 
 #include "structs.h"
 #include "enums.h"
@@ -211,6 +212,23 @@ std::map<std::string, std::string> parseCommandString(const std::string &command
         throw ErrorType::BAD_REQUEST_ERROR;
     }
     return result;
+}
+
+bool compareByName(const PlayList &a, const PlayList &b)
+{
+    return a.name < b.name;
+}
+
+std::vector<PlayList> sortPlaylistsByName(const std::vector<PlayList> &inputVector)
+{
+    std::vector<PlayList> sortedVector;
+
+    for (const auto &element : inputVector)
+        sortedVector.push_back(element);
+
+    std::sort(sortedVector.begin(), sortedVector.end(), compareByName);
+
+    return sortedVector;
 }
 
 #endif

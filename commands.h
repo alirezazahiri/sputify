@@ -175,8 +175,8 @@ void logoutCommand(std::string command, std::vector<User> *users, int *currentUs
 // * get user/artist musics
 void getMusicsCommand(std::string command, std::vector<User> *users, int *currentUser, std::vector<Music> *musics)
 {
-    // if (*currentUser == -1)
-    //     throw(ErrorType::PERMISSION_DENIED_ERROR);
+    if (*currentUser == -1)
+        throw(ErrorType::PERMISSION_DENIED_ERROR);
     /*
      * [0]GET [1]musics [2]?
      * size = 3
@@ -215,8 +215,8 @@ void getMusicsCommand(std::string command, std::vector<User> *users, int *curren
 
 void getMusicByIdCommand(std::string command, std::vector<User> *users, int *currentUser, std::vector<Music> *musics)
 {
-    // if (*currentUser == -1)
-    //     throw(ErrorType::PERMISSION_DENIED_ERROR);
+    if (*currentUser == -1)
+        throw(ErrorType::PERMISSION_DENIED_ERROR);
     /*
      * [0]GET [1]musics [2]? [3]id [4]<{id}>
      * size = 5
@@ -257,8 +257,8 @@ void getMusicByIdCommand(std::string command, std::vector<User> *users, int *cur
 // * get user/artist profiles
 void getAllUsersCommand(std::string command, std::vector<User> *users, int *currentUser)
 {
-    // if (*currentUser == -1)
-    //     throw(ErrorType::PERMISSION_DENIED_ERROR);
+    if (*currentUser == -1)
+        throw(ErrorType::PERMISSION_DENIED_ERROR);
     /*
      * [0]GET [1]users [2]?
      * size = 3
@@ -297,8 +297,8 @@ void getAllUsersCommand(std::string command, std::vector<User> *users, int *curr
 
 void getUserByIdCommand(std::string command, std::vector<User> *users, int *currentUser)
 {
-    // if (*currentUser == -1)
-    //     throw(ErrorType::PERMISSION_DENIED_ERROR);
+    if (*currentUser == -1)
+        throw(ErrorType::PERMISSION_DENIED_ERROR);
     /*
      * [0]GET [1]users [2]? [3]id [4]<{id}>
      * size = 5
@@ -349,9 +349,12 @@ void createPlaylistCommand(std::string command, std::vector<User> *users, int *c
      */
 
     bool isBadRequest = false;
-    std::string playlistName;
+    std::string playlistName = "";
 
     std::map<std::string, std::string> tokenValueMap = parseCommandString(command);
+
+    if (tokenValueMap.empty())
+        throw ErrorType::BAD_REQUEST_ERROR;
 
     for (const auto &pair : tokenValueMap)
     {
@@ -387,8 +390,6 @@ void getUserPlaylistsCommand(std::string command, std::vector<User> *users, int 
 {
     if (*currentUser == -1)
         throw(ErrorType::PERMISSION_DENIED_ERROR);
-    if ((*users)[*currentUser].status.mode == UserMode::ARTIST)
-        throw ErrorType::BAD_REQUEST_ERROR;
     /*
      * [0]GET [1]playlist [2]? [3]id [4]<{id}>
      * size = 5
@@ -420,8 +421,10 @@ void getUserPlaylistsCommand(std::string command, std::vector<User> *users, int 
 
     if (userIndex == -1)
         throw(ErrorType::NOT_FOUND_ERROR);
+    if ((*users)[userIndex].status.mode == UserMode::ARTIST)
+        throw ErrorType::BAD_REQUEST_ERROR;
 
-    logAllPlaylists((*users)[userIndex].playlists);
+    logAllPlaylists(sortPlaylistsByName((*users)[userIndex].playlists));
 
     return;
 }
@@ -472,6 +475,9 @@ void addMusicToPlaylistCommand(std::string command, std::vector<User> *users, in
         int musicIndex = findMusicIndexById(*musics, id);
         if (musicIndex == -1)
             throw ErrorType::NOT_FOUND_ERROR;
+        bool isAlreadyInPlaylist = findMusicIndexById(playlist.musics, id) != -1;
+        if (isAlreadyInPlaylist)
+            throw ErrorType::PERMISSION_DENIED_ERROR;
         playlist.musics.push_back((*musics)[musicIndex]);
         int sum = 0;
         for (const Music m : playlist.musics)
@@ -493,8 +499,6 @@ void searchMusicCommand(std::string command, std::vector<User> *users, int *curr
 {
     if (*currentUser == -1)
         throw(ErrorType::PERMISSION_DENIED_ERROR);
-    if ((*users)[*currentUser].status.mode == UserMode::ARTIST)
-        throw ErrorType::BAD_REQUEST_ERROR;
     /*
      * [0]GET [1]search_music [2]? [3]name [4]<{name}> [5]artist [6]<{artist}> [7]tag [8]<{tag}>
      * size = 7

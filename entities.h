@@ -53,7 +53,8 @@ void logUser(User user, const bool __detail)
     {
         std::cout << "ID: " << user.id << std::endl;
         std::cout << "Mode: " << (user.status.mode == UserMode::USER ? "user" : "artist") << std::endl;
-        std::cout << "Playlists/Songs: ";
+        std::cout << "Username: " << user.username << std::endl;
+        std::cout << (user.status.mode == UserMode::USER ? "Playlists" : "Songs") << ": ";
         if (user.status.mode == UserMode::USER)
         {
             size_t size = user.playlists.size();
@@ -118,6 +119,5 @@ void logAllPlaylists(std::vector<PlayList> playlists)
     for (size_t i = 0; i < playlists.size(); i++)
         logPlaylist(playlists[i]);
 }
-
 
 #endif
