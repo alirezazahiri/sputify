@@ -177,7 +177,12 @@ std::map<std::string, std::string> parseCommandString(const std::string &command
         {
             std::vector<std::string> tokenSubset;
             while (tokens[i][tokens[i].length() - 1] != '>')
-                tokenSubset.push_back(tokens[i++]);
+            {
+                if (i < tokens.size() - 1)
+                    tokenSubset.push_back(tokens[i++]);
+                else
+                    break;
+            }
             tokenSubset.push_back(tokens[i]);
             value = join(tokenSubset, " ");
             value = value.substr(1, value.length() - 2);
