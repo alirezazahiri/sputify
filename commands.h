@@ -75,6 +75,9 @@ void signupCommand(std::string command, std::vector<User> *users, int *currentUs
 
     user.musics = {};
     user.playlists = {};
+    user.followers = {};
+    user.followings = {};
+    user.favorites = {};
 
     *currentUser = users->size();
     users->push_back(user);
@@ -224,7 +227,7 @@ void getMusicByIdCommand(std::string command, std::vector<User> *users, int *cur
      */
 
     bool isBadRequest = false;
-    int id;
+    int id = -1;
 
     std::map<std::string, std::string> tokenValueMap = parseCommandString(command);
 
@@ -240,7 +243,8 @@ void getMusicByIdCommand(std::string command, std::vector<User> *users, int *cur
             break;
         }
     }
-
+    if (id == -1)
+        isBadRequest = true;
     if (isBadRequest)
         throw ErrorType::BAD_REQUEST_ERROR;
 
@@ -306,7 +310,7 @@ void getUserByIdCommand(std::string command, std::vector<User> *users, int *curr
      */
 
     bool isBadRequest = false;
-    int id;
+    int id = -1;
 
     std::map<std::string, std::string> tokenValueMap = parseCommandString(command);
 
@@ -322,7 +326,8 @@ void getUserByIdCommand(std::string command, std::vector<User> *users, int *curr
             break;
         }
     }
-
+    if (id == -1)
+        isBadRequest = true;
     if (isBadRequest)
         throw ErrorType::BAD_REQUEST_ERROR;
 
@@ -369,7 +374,7 @@ void createPlaylistCommand(std::string command, std::vector<User> *users, int *c
         }
     }
 
-    int playlistIndex = findPlaylistByName((*users)[*currentUser].playlists, playlistName);
+    int playlistIndex = findPlaylistIndexByName((*users)[*currentUser].playlists, playlistName);
 
     if (playlistIndex == -1)
     {
@@ -391,13 +396,13 @@ void getUserPlaylistsCommand(std::string command, std::vector<User> *users, int 
     if (*currentUser == -1)
         throw(ErrorType::PERMISSION_DENIED_ERROR);
     /*
-     * [0]GET [1]playlist [2]? [3]id [4]<{id}>
+     * [0]GET [1]playlist [2]? [3]id [4]<{user id}>
      * size = 5
      * indexes: id = 4
      */
 
     bool isBadRequest = false;
-    int id;
+    int userId = -1;
 
     std::map<std::string, std::string> tokenValueMap = parseCommandString(command);
 
@@ -405,7 +410,7 @@ void getUserPlaylistsCommand(std::string command, std::vector<User> *users, int 
     {
         if (pair.first == "id")
         {
-            id = stoi(pair.second);
+            userId = stoi(pair.second);
         }
         else
         {
@@ -414,10 +419,12 @@ void getUserPlaylistsCommand(std::string command, std::vector<User> *users, int 
         }
     }
 
+    if (userId == -1)
+        isBadRequest = true;
     if (isBadRequest)
         throw ErrorType::BAD_REQUEST_ERROR;
 
-    int userIndex = findUserIndexById(*users, id);
+    int userIndex = findUserIndexById(*users, userId);
 
     if (userIndex == -1)
         throw(ErrorType::NOT_FOUND_ERROR);
@@ -425,6 +432,70 @@ void getUserPlaylistsCommand(std::string command, std::vector<User> *users, int 
         throw ErrorType::BAD_REQUEST_ERROR;
 
     logAllPlaylists(sortPlaylistsByName((*users)[userIndex].playlists));
+
+    return;
+}
+void getUserPlaylistByNameAndUserIdCommand(std::string command, std::vector<User> *users, int *currentUser)
+{
+    if (*currentUser == -1)
+        throw(ErrorType::PERMISSION_DENIED_ERROR);
+    if ((*users)[*currentUser].status.mode == UserMode::ARTIST)
+        throw ErrorType::BAD_REQUEST_ERROR;
+    /*
+     * [0]GET [1]playlist [2]? [3]name [4]<{name}> [5]id [6]<{user id}>
+     * size = 7
+     * indexes: name = 4, id = 6
+     */
+
+    bool isBadRequest = false;
+    int userId = -1;
+    std::string playlistName = "";
+
+    std::map<std::string, std::string> tokenValueMap = parseCommandString(command);
+
+    for (const auto &pair : tokenValueMap)
+    {
+        if (pair.first == "id")
+        {
+            userId = stoi(pair.second);
+        }
+        else if (pair.first == "name")
+        {
+            playlistName = pair.second;
+        }
+        else
+        {
+            isBadRequest = true;
+            break;
+        }
+    }
+    if (playlistName == "")
+    {
+        std::ostringstream ss;
+        ss << "GET playlist ? id <" << userId << ">";
+        std::string newCommand = ss.str();
+        return getUserPlaylistsCommand(newCommand, users, currentUser);
+    }
+
+    if (userId == -1)
+        isBadRequest = true;
+    if (isBadRequest)
+        throw ErrorType::BAD_REQUEST_ERROR;
+
+    int userIndex = findUserIndexById(*users, userId);
+
+    if (userIndex == -1)
+        throw(ErrorType::NOT_FOUND_ERROR);
+
+    int playlistIndex = findPlaylistIndexByName((*users)[userIndex].playlists, playlistName);
+
+    if (playlistIndex == -1)
+        throw(ErrorType::NOT_FOUND_ERROR);
+
+    if ((*users)[userIndex].status.mode == UserMode::ARTIST)
+        throw ErrorType::BAD_REQUEST_ERROR;
+
+    logAllMusics((*users)[userIndex].playlists[playlistIndex].musics, false);
 
     return;
 }
@@ -443,7 +514,7 @@ void addMusicToPlaylistCommand(std::string command, std::vector<User> *users, in
 
     bool isBadRequest = false;
     std::string playlistName;
-    int id;
+    int id = -1;
 
     std::map<std::string, std::string> tokenValueMap = parseCommandString(command);
 
@@ -464,10 +535,12 @@ void addMusicToPlaylistCommand(std::string command, std::vector<User> *users, in
         }
     }
 
+    if (id == -1)
+        isBadRequest = true;
     if (isBadRequest)
         throw ErrorType::BAD_REQUEST_ERROR;
 
-    int playlistIndex = findPlaylistByName((*users)[*currentUser].playlists, playlistName);
+    int playlistIndex = findPlaylistIndexByName((*users)[*currentUser].playlists, playlistName);
 
     if (playlistIndex != -1)
     {
@@ -600,6 +673,8 @@ void shareMusicCommand(std::string command, std::vector<User> *users, int *curre
 
     music.artist = (*users)[*currentUser].username;
 
+    music.likes = {};
+
     (*users)[*currentUser].musics.push_back(music);
     musics->push_back(music);
 
@@ -622,7 +697,7 @@ void deleteMusicCommand(std::string command, std::vector<User> *users, int *curr
      */
 
     bool isBadRequest = false;
-    int id;
+    int id = -1;
 
     std::map<std::string, std::string> tokenValueMap = parseCommandString(command);
 
@@ -638,6 +713,8 @@ void deleteMusicCommand(std::string command, std::vector<User> *users, int *curr
             break;
         }
     }
+    if (id == -1)
+        isBadRequest = true;
 
     if (isBadRequest)
         throw ErrorType::BAD_REQUEST_ERROR;
@@ -716,5 +793,212 @@ void showRegisteredMusicsCommand(std::string command, std::vector<User> *users, 
 
     return;
 }
+
+void followUserByIdCommand(std::string command, std::vector<User> *users, int *currentUser)
+{
+    if (*currentUser == -1)
+        throw(ErrorType::PERMISSION_DENIED_ERROR);
+
+    /*
+     * [0]POST [1]follow [2]? [3]id [4]<{id}>
+     * size = 5
+     * indexes: id = 3
+     */
+
+    bool isBadRequest = false;
+    int id = -1;
+
+    std::map<std::string, std::string> tokenValueMap = parseCommandString(command);
+
+    for (const auto &pair : tokenValueMap)
+    {
+        if (pair.first == "id")
+        {
+            id = stoi(pair.second);
+        }
+        else
+        {
+            isBadRequest = true;
+            break;
+        }
+    }
+    if (id == -1)
+        isBadRequest = true;
+    if (isBadRequest)
+        throw ErrorType::BAD_REQUEST_ERROR;
+
+    int toBeFollowedUserIndex = findUserIndexById(*users, id);
+
+    if (toBeFollowedUserIndex == -1)
+        throw ErrorType::NOT_FOUND_ERROR;
+
+    if (*currentUser == toBeFollowedUserIndex)
+        throw ErrorType::BAD_REQUEST_ERROR;
+
+    int isFollowed = findUserIndexById((*users)[*currentUser].followings, id) != -1;
+
+    if (isFollowed)
+        throw ErrorType::BAD_REQUEST_ERROR;
+
+    (*users)[*currentUser].followings.push_back((*users)[toBeFollowedUserIndex]);
+
+    std::cout << "OK" << std::endl;
+    return;
+}
+
+void unfollowUserByIdCommand(std::string command, std::vector<User> *users, int *currentUser)
+{
+    if (*currentUser == -1)
+        throw(ErrorType::PERMISSION_DENIED_ERROR);
+
+    /*
+     * [0]POST [1]unfollow [2]? [3]id [4]<{id}>
+     * size = 5
+     * indexes: id = 3
+     */
+
+    bool isBadRequest = false;
+    int id = -1;
+
+    std::map<std::string, std::string> tokenValueMap = parseCommandString(command);
+
+    for (const auto &pair : tokenValueMap)
+    {
+        if (pair.first == "id")
+        {
+            id = stoi(pair.second);
+        }
+        else
+        {
+            isBadRequest = true;
+            break;
+        }
+    }
+    if (id == -1)
+        isBadRequest = true;
+    if (isBadRequest)
+        throw ErrorType::BAD_REQUEST_ERROR;
+
+    int toBeUnfollowedUserIndex = findUserIndexById(*users, id);
+
+    if (toBeUnfollowedUserIndex == -1)
+        throw ErrorType::NOT_FOUND_ERROR;
+
+    if (*currentUser == toBeUnfollowedUserIndex)
+        throw ErrorType::BAD_REQUEST_ERROR;
+
+    int isFollowed = findUserIndexById((*users)[*currentUser].followings, id) != -1;
+
+    if (isFollowed)
+    {
+        bool success = removeAtIndex((*users)[*currentUser].followings, toBeUnfollowedUserIndex);
+        if (!success)
+            throw ErrorType::PERMISSION_DENIED_ERROR;
+    }
+    else
+        throw ErrorType::BAD_REQUEST_ERROR;
+
+    std::cout << "OK" << std::endl;
+    return;
+}
+
+void deletePlaylistByIdCommand(std::string command, std::vector<User> *users, int *currentUser)
+{
+    if (*currentUser == -1)
+        throw(ErrorType::PERMISSION_DENIED_ERROR);
+
+    /*
+     * [0]DELETE [1]playlist [2]? [3]name [4]<{name}>
+     * size = 5
+     * indexes: name = 3
+     */
+
+    bool isBadRequest = false;
+    std::string name = "";
+
+    std::map<std::string, std::string> tokenValueMap = parseCommandString(command);
+
+    for (const auto &pair : tokenValueMap)
+    {
+        if (pair.first == "name")
+        {
+            name = pair.second;
+        }
+        else
+        {
+            isBadRequest = true;
+            break;
+        }
+    }
+
+    if (isBadRequest)
+        throw ErrorType::BAD_REQUEST_ERROR;
+
+    int toBeDeletedPlaylistIndex = findPlaylistIndexByName((*users)[*currentUser].playlists, name);
+
+    if (toBeDeletedPlaylistIndex == -1)
+        throw ErrorType::NOT_FOUND_ERROR;
+
+    bool success = removeAtIndex((*users)[*currentUser].playlists, toBeDeletedPlaylistIndex);
+
+    if (!success)
+        throw ErrorType::PERMISSION_DENIED_ERROR;
+
+    std::cout << "OK" << std::endl;
+    return;
+}
+
+void likeMusicByIdCommand(std::string command, std::vector<User> *users, int *currentUser, std::vector<Music> *musics)
+{
+    if (*currentUser == -1)
+        throw(ErrorType::PERMISSION_DENIED_ERROR);
+
+    /*
+     * [0]POST [1]like [2]? [3]id [4]<{id}>
+     * size = 5
+     * indexes: id = 3
+     */
+
+    bool isBadRequest = false;
+    int id = -1;
+
+    std::map<std::string, std::string> tokenValueMap = parseCommandString(command);
+
+    for (const auto &pair : tokenValueMap)
+    {
+        if (pair.first == "id")
+        {
+            id = stoi(pair.second);
+        }
+        else
+        {
+            isBadRequest = true;
+            break;
+        }
+    }
+    if (id == -1)
+        isBadRequest = true;
+    if (isBadRequest)
+        throw ErrorType::BAD_REQUEST_ERROR;
+
+    int toBeLikedMusic = findMusicIndexById(*musics, id);
+
+    if (toBeLikedMusic == -1)
+        throw ErrorType::NOT_FOUND_ERROR;
+
+    int isLiked = findMusicIndexById((*users)[*currentUser].favorites, id) != -1;
+    if (isLiked)
+        throw ErrorType::BAD_REQUEST_ERROR;
+
+    (*users)[*currentUser].favorites.push_back((*musics)[toBeLikedMusic]);
+    (*musics)[toBeLikedMusic].likes.push_back((*users)[*currentUser]);
+
+    std::cout << "OK" << std::endl;
+    return;
+}
+
+void getLikesCommand(std::string command, std::vector<User> *users, int *currentUser, std::vector<Music> *musics) {}
+
+void getRecommendationsCommand(std::string command, std::vector<User> *users, int *currentUser, std::vector<Music> *musics) {}
 
 #endif

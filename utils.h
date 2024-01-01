@@ -72,7 +72,7 @@ int findUserIndexByUsername(std::vector<User> users, std::string username)
     return -1;
 }
 
-int findPlaylistByName(std::vector<PlayList> playlists, std::string name)
+int findPlaylistIndexByName(std::vector<PlayList> playlists, std::string name)
 {
     for (size_t i = 0; i < playlists.size(); i++)
     {
@@ -193,10 +193,15 @@ std::map<std::string, std::string> parseCommandString(const std::string &command
             key = tokens[i];
         }
 
-        if (value != "")
+        if (value != "") {
+            // std::cout << "value: " << value << std::endl;
             values.push_back(value);
+        }
         if (key != "")
+        {
+            // std::cout << "key: " << key << std::endl;
             keys.push_back(key);
+        }
         i++;
     }
 

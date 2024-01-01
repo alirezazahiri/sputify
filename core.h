@@ -50,10 +50,17 @@ Command recognizeCommand(std::string command)
         }
         else if (tokens[1] == "playlist")
         {
-            if (tokens.size() > 3)
+            if (tokens.size() > 5)
+            {
+                if ((tokens[3] == "id" || tokens[5] == "id") && (tokens[3] == "name" || tokens[5] == "name"))
+                    return Command::GET_PLAYLIST_BY_NAME_AND_USER_ID;
+                else
+                    throw ErrorType::BAD_REQUEST_ERROR;
+            }
+            else if (tokens.size() > 3)
             {
                 if (tokens[3] == "id")
-                    return Command::GET_PLAYLIST_BY_ID;
+                    return Command::GET_PLAYLIST_BY_USER_ID;
                 else
                     throw ErrorType::BAD_REQUEST_ERROR;
             }
@@ -102,6 +109,34 @@ Command recognizeCommand(std::string command)
         {
             return Command::POST_MUSIC;
         }
+        else if (tokens[1] == "like")
+        {
+            return Command::POST_LIKE_MUSIC_BY_ID;
+        }
+        else if (tokens[1] == "follow")
+        {
+            if (tokens.size() > 3)
+            {
+                if (tokens[3] == "id")
+                    return Command::POST_FOLLOW_BY_ID;
+                else
+                    throw ErrorType::BAD_REQUEST_ERROR;
+            }
+            else
+                throw ErrorType::BAD_REQUEST_ERROR;
+        }
+        else if (tokens[1] == "unfollow")
+        {
+            if (tokens.size() > 3)
+            {
+                if (tokens[3] == "id")
+                    return Command::POST_UNFOLLOW_BY_ID;
+                else
+                    throw ErrorType::BAD_REQUEST_ERROR;
+            }
+            else
+                throw ErrorType::BAD_REQUEST_ERROR;
+        }
         else
             throw ErrorType::NOT_FOUND_ERROR;
     }
@@ -119,6 +154,10 @@ Command recognizeCommand(std::string command)
         if (tokens[1] == "music")
         {
             return Command::DELETE_MUSIC;
+        }
+        if (tokens[1] == "playlist")
+        {
+            return Command::DELETE_PLAYLIST_BY_ID;
         }
         else
             throw ErrorType::NOT_FOUND_ERROR;
@@ -139,9 +178,13 @@ void execute(Command command, std::string input, std::vector<User> *users, std::
         // std::cout << "Command::GET_MUSICS_BY_ID" << std::endl;
         getMusicByIdCommand(input, users, currentUser, musics);
         break;
-    case Command::GET_PLAYLIST_BY_ID:
-        // std::cout << "Command::GET_PLAYLIST_BY_ID" << std::endl;
+    case Command::GET_PLAYLIST_BY_USER_ID:
+        // std::cout << "Command::GET_PLAYLIST_BY_USER_ID" << std::endl;
         getUserPlaylistsCommand(input, users, currentUser);
+        break;
+    case Command::GET_PLAYLIST_BY_NAME_AND_USER_ID:
+        // std::cout << "Command::GET_PLAYLIST_BY_NAME_AND_USER_ID" << std::endl;
+        getUserPlaylistByNameAndUserIdCommand(input, users, currentUser);
         break;
     case Command::GET_REGISTERED_MUSICS:
         // std::cout << "Command::GET_REGISTERED_MUSICS" << std::endl;
@@ -186,6 +229,30 @@ void execute(Command command, std::string input, std::vector<User> *users, std::
     case Command::DELETE_MUSIC:
         // std::cout << "Command::DELETE_MUSIC" << std::endl;
         deleteMusicCommand(input, users, currentUser, musics);
+        break;
+    case Command::POST_FOLLOW_BY_ID:
+        // std::cout << "Command::POST_FOLLOW_BY_ID" << std::endl;
+        followUserByIdCommand(input, users, currentUser);
+        break;
+    case Command::POST_UNFOLLOW_BY_ID:
+        // std::cout << "Command::POST_UNFOLLOW_BY_ID" << std::endl;
+        unfollowUserByIdCommand(input, users, currentUser);
+        break;
+    case Command::DELETE_PLAYLIST_BY_ID:
+        // std::cout << "Command::POST_UNFOLLOW_BY_ID" << std::endl;
+        deletePlaylistByIdCommand(input, users, currentUser);
+        break;
+    case Command::POST_LIKE_MUSIC_BY_ID:
+        // std::cout << "Command::POST_UNFOLLOW_BY_ID" << std::endl;
+        likeMusicByIdCommand(input, users, currentUser, musics);
+        break;
+    case Command::GET_RECOMMENDATIONS:
+        // std::cout << "Command::GET_RECOMMENDATIONS" << std::endl;
+        // likeMusicById(input, users, currentUser, musics);
+        break;
+    case Command::GET_LIKES:
+        // std::cout << "Command::GET_LIKES" << std::endl;
+        // likeMusicById(input, users, currentUser, musics);
         break;
     default:
         throw ErrorType::BAD_REQUEST_ERROR;

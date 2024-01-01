@@ -20,6 +20,7 @@ struct Music
     std::vector<std::string> tags;
     std::string path;
     Time duration;
+    std::vector<User> likes;
 };
 // void logMusic(Music music, const bool __detail);
 // void logAllMusics(std::vector<Music> musics, const bool __detail);
@@ -41,6 +42,9 @@ struct User
     UserStatus status;
     std::vector<PlayList> playlists;
     std::vector<Music> musics;
+    std::vector<User> followings;
+    std::vector<User> followers;
+    std::vector<Music> favorites;
 };
 // void logUser(User user, const bool __detail);
 // void logAllUsers(std::vector<User> users);
@@ -54,6 +58,30 @@ void logUser(User user, const bool __detail)
         std::cout << "ID: " << user.id << std::endl;
         std::cout << "Mode: " << (user.status.mode == UserMode::USER ? "user" : "artist") << std::endl;
         std::cout << "Username: " << user.username << std::endl;
+        std::cout << "Followings: ";
+        {
+            size_t size = user.followings.size();
+            for (size_t i = 0; i < size; i++)
+            {
+                if (i < size - 1)
+                    std::cout << user.followings[i].username << ", ";
+                else
+                    std::cout << user.followings[i].username;
+            }
+            std::cout << std::endl;
+        }
+        std::cout << "Followers: ";
+        {
+            size_t size = user.followers.size();
+            for (size_t i = 0; i < size; i++)
+            {
+                if (i < size - 1)
+                    std::cout << user.followers[i].username << ", ";
+                else
+                    std::cout << user.followers[i].username;
+            }
+            std::cout << std::endl;
+        }
         std::cout << (user.status.mode == UserMode::USER ? "Playlists" : "Songs") << ": ";
         if (user.status.mode == UserMode::USER)
         {
