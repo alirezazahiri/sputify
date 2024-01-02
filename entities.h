@@ -20,7 +20,7 @@ struct Music
     std::vector<std::string> tags;
     std::string path;
     Time duration;
-    std::vector<User> likes;
+    std::vector<int> likes;
 };
 // void logMusic(Music music, const bool __detail);
 // void logAllMusics(std::vector<Music> musics, const bool __detail);
@@ -33,7 +33,6 @@ struct PlayList
 };
 // void logPlaylist(PlayList playlist);
 // void logAllPlaylists(std::vector<PlayList> playlists);
-
 struct User
 {
     int id;
@@ -46,6 +45,7 @@ struct User
     std::vector<User> followers;
     std::vector<Music> favorites;
 };
+
 // void logUser(User user, const bool __detail);
 // void logAllUsers(std::vector<User> users);
 
@@ -146,6 +146,15 @@ void logAllPlaylists(std::vector<PlayList> playlists)
     std::cout << "Playlist_name, Songs_number, Duration" << std::endl;
     for (size_t i = 0; i < playlists.size(); i++)
         logPlaylist(playlists[i]);
+}
+
+void logAllRecommendations(std::vector<Music> musics)
+{
+    std::cout << "ID, Name, Artist, Likes" << std::endl;
+    for (size_t i = 0; i < musics.size(); i++)
+    {
+        std::cout << musics[i].id << ", " << musics[i].name << ", " << musics[i].artist << ", " << musics[i].likes.size() << std::endl;
+    }
 }
 
 #endif

@@ -193,7 +193,8 @@ std::map<std::string, std::string> parseCommandString(const std::string &command
             key = tokens[i];
         }
 
-        if (value != "") {
+        if (value != "")
+        {
             // std::cout << "value: " << value << std::endl;
             values.push_back(value);
         }
@@ -224,6 +225,15 @@ bool compareByName(const PlayList &a, const PlayList &b)
     return a.name < b.name;
 }
 
+bool compareByLikesCountAndId(const Music &a, const Music &b)
+{
+    if (a.likes.size() == b.likes.size())
+    {
+        return a.id < b.id;
+    }
+    return a.likes.size() > b.likes.size();
+}
+
 std::vector<PlayList> sortPlaylistsByName(const std::vector<PlayList> &inputVector)
 {
     std::vector<PlayList> sortedVector;
@@ -234,6 +244,32 @@ std::vector<PlayList> sortPlaylistsByName(const std::vector<PlayList> &inputVect
     std::sort(sortedVector.begin(), sortedVector.end(), compareByName);
 
     return sortedVector;
+}
+std::vector<Music> getRecommendedMusics(const std::vector<Music> &musics, int maxCount)
+{
+    std::vector<Music> copiedMusics;
+
+    for (const auto &music : musics) {
+        copiedMusics.push_back(music);
+    }
+    std::vector<Music> recommendedMusics;
+
+    std::sort(copiedMusics.begin(), copiedMusics.end(), compareByLikesCountAndId);
+
+    int counter = maxCount;
+    for (const auto &music : copiedMusics)
+    {
+        if (music.likes.size() > 0)
+        {
+            if (maxCount-- > 0)
+            {
+                recommendedMusics.push_back(music);
+            }
+        }
+        else
+            break;
+    }
+    return recommendedMusics;
 }
 
 #endif

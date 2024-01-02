@@ -834,13 +834,17 @@ void followUserByIdCommand(std::string command, std::vector<User> *users, int *c
 
     if (*currentUser == toBeFollowedUserIndex)
         throw ErrorType::BAD_REQUEST_ERROR;
-
     int isFollowed = findUserIndexById((*users)[*currentUser].followings, id) != -1;
 
     if (isFollowed)
         throw ErrorType::BAD_REQUEST_ERROR;
 
-    (*users)[*currentUser].followings.push_back((*users)[toBeFollowedUserIndex]);
+    std::vector<User> followings = (*users)[*currentUser].followings;
+    followings.push_back((*users)[toBeFollowedUserIndex]);
+    (*users)[*currentUser].followings = followings;
+    std::vector<User> followers = (*users)[toBeFollowedUserIndex].followers;
+    followers.push_back((*users)[*currentUser]);
+    (*users)[toBeFollowedUserIndex].followers = followers;
 
     std::cout << "OK" << std::endl;
     return;
@@ -888,12 +892,19 @@ void unfollowUserByIdCommand(std::string command, std::vector<User> *users, int 
         throw ErrorType::BAD_REQUEST_ERROR;
 
     int isFollowed = findUserIndexById((*users)[*currentUser].followings, id) != -1;
-
     if (isFollowed)
     {
-        bool success = removeAtIndex((*users)[*currentUser].followings, toBeUnfollowedUserIndex);
-        if (!success)
+        std::vector<User> followings = (*users)[*currentUser].followings;
+        std::vector<User> followers = (*users)[toBeUnfollowedUserIndex].followers;
+        bool successRemoveFollowing = removeAtIndex(followings, toBeUnfollowedUserIndex);
+
+        int followedUserIndex = findUserIndexById((*users)[toBeUnfollowedUserIndex].followers, (*users)[*currentUser].id);
+        bool successRemoveTargetsFollower = removeAtIndex(followers, followedUserIndex);
+        if (!successRemoveFollowing || !successRemoveTargetsFollower)
             throw ErrorType::PERMISSION_DENIED_ERROR;
+
+        (*users)[*currentUser].followings = followings;
+        (*users)[toBeUnfollowedUserIndex].followers = followers;
     }
     else
         throw ErrorType::BAD_REQUEST_ERROR;
@@ -906,6 +917,8 @@ void deletePlaylistByIdCommand(std::string command, std::vector<User> *users, in
 {
     if (*currentUser == -1)
         throw(ErrorType::PERMISSION_DENIED_ERROR);
+    if ((*users)[*currentUser].status.mode == UserMode::ARTIST)
+        throw ErrorType::BAD_REQUEST_ERROR;
 
     /*
      * [0]DELETE [1]playlist [2]? [3]name [4]<{name}>
@@ -952,6 +965,8 @@ void likeMusicByIdCommand(std::string command, std::vector<User> *users, int *cu
 {
     if (*currentUser == -1)
         throw(ErrorType::PERMISSION_DENIED_ERROR);
+    if ((*users)[*currentUser].status.mode == UserMode::ARTIST)
+        throw ErrorType::BAD_REQUEST_ERROR;
 
     /*
      * [0]POST [1]like [2]? [3]id [4]<{id}>
@@ -991,14 +1006,106 @@ void likeMusicByIdCommand(std::string command, std::vector<User> *users, int *cu
         throw ErrorType::BAD_REQUEST_ERROR;
 
     (*users)[*currentUser].favorites.push_back((*musics)[toBeLikedMusic]);
-    (*musics)[toBeLikedMusic].likes.push_back((*users)[*currentUser]);
+    (*musics)[toBeLikedMusic].likes.push_back((*users)[*currentUser].id);
 
     std::cout << "OK" << std::endl;
     return;
 }
 
-void getLikesCommand(std::string command, std::vector<User> *users, int *currentUser, std::vector<Music> *musics) {}
+void getLikesCommand(std::string command, std::vector<User> *users, int *currentUser, std::vector<Music> *musics)
+{
 
-void getRecommendationsCommand(std::string command, std::vector<User> *users, int *currentUser, std::vector<Music> *musics) {}
+    if (*currentUser == -1)
+        throw(ErrorType::PERMISSION_DENIED_ERROR);
+    if ((*users)[*currentUser].status.mode == UserMode::ARTIST)
+        throw ErrorType::BAD_REQUEST_ERROR;
+
+    /*
+     * [0]GET [1]likes [2]?
+     * size = 3
+     * indexes: -
+     */
+
+    std::istringstream iss(command);
+    std::vector<std::string> tokens;
+    std::string token;
+
+    while (iss >> token)
+    {
+        tokens.push_back(token);
+    }
+
+    bool isBadRequest = false;
+    if (tokens[0] == "GET" && tokens.size() > 2)
+    {
+        if (tokens[1] != "likes")
+            isBadRequest = true;
+    }
+    else
+        isBadRequest = true;
+
+    if ((*users)[*currentUser].favorites.empty())
+        throw ErrorType::EMPTY_ERROR;
+
+    logAllMusics((*users)[*currentUser].favorites, false);
+
+    return;
+}
+
+void getRecommendationsCommand(std::string command, std::vector<User> *users, int *currentUser, std::vector<Music> *musics)
+{
+    if (*currentUser == -1)
+        throw(ErrorType::PERMISSION_DENIED_ERROR);
+    if ((*users)[*currentUser].status.mode == UserMode::ARTIST)
+        throw ErrorType::BAD_REQUEST_ERROR;
+
+    /*
+     * [0]GET [1]recommendations [2]?
+     * size = 3
+     * indexes: -
+     */
+
+    std::istringstream iss(command);
+    std::vector<std::string> tokens;
+    std::string token;
+
+    while (iss >> token)
+    {
+        tokens.push_back(token);
+    }
+
+    bool isBadRequest = false;
+    if (tokens[0] == "GET" && tokens.size() > 2)
+    {
+        if (tokens[1] != "recommendations")
+            isBadRequest = true;
+    }
+    else
+        isBadRequest = true;
+
+    if (isBadRequest)
+        throw ErrorType::BAD_REQUEST_ERROR;
+
+    std::vector<Music> filteredMusics;
+    for (const auto & music: *musics) {
+        bool isInLikes = false;
+        for (const auto likedMusic: (*users)[*currentUser].favorites) {
+            if (likedMusic.id == music.id) {
+                isInLikes = true;
+                break;
+            }
+        }
+        if (!isInLikes) filteredMusics.push_back(music);
+    }
+
+    std::vector<Music> recommendations = getRecommendedMusics(filteredMusics, 5);
+
+    if (recommendations.empty())
+        throw ErrorType::EMPTY_ERROR;
+
+    logAllMusics(recommendations, false);
+
+    return;
+}
 
 #endif
