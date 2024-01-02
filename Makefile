@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++11
+CXXFLAGS = -std=c++20
 
 SRC_FILES = main.cpp 
 HEADER_FILES = entities.h enums.h commands.h helpers.h utils.h core.h
