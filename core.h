@@ -176,7 +176,6 @@ Command recognizeCommand(std::string command)
 
 void execute(Command command, std::string input, std::vector<User> *users, std::vector<Music> *musics, int *currentUser, int *latestMusicID)
 {   
-    std::cout << input << ": ";
     switch (command)
     {
     case Command::GET_MUSICS:
@@ -240,11 +239,11 @@ void execute(Command command, std::string input, std::vector<User> *users, std::
         deleteMusicCommand(input, users, currentUser, musics);
         break;
     case Command::POST_FOLLOW_BY_ID:
-        std::cout << "Command::POST_FOLLOW_BY_ID" << std::endl;
+        // std::cout << "Command::POST_FOLLOW_BY_ID" << std::endl;
         followUserByIdCommand(input, users, currentUser);
         break;
     case Command::POST_UNFOLLOW_BY_ID:
-        std::cout << "Command::POST_UNFOLLOW_BY_ID" << std::endl;
+        // std::cout << "Command::POST_UNFOLLOW_BY_ID" << std::endl;
         unfollowUserByIdCommand(input, users, currentUser);
         break;
     case Command::DELETE_PLAYLIST_BY_ID:
@@ -256,11 +255,11 @@ void execute(Command command, std::string input, std::vector<User> *users, std::
         likeMusicByIdCommand(input, users, currentUser, musics);
         break;
     case Command::GET_RECOMMENDATIONS:
-        std::cout << "Command::GET_RECOMMENDATIONS" << std::endl;
+        // std::cout << "Command::GET_RECOMMENDATIONS" << std::endl;
         getRecommendationsCommand(input, users, currentUser, musics);
         break;
     case Command::GET_LIKES:
-        std::cout << "Command::GET_LIKES" << std::endl;
+        // std::cout << "Command::GET_LIKES" << std::endl;
         getLikesCommand(input, users, currentUser, musics);
         break;
     default:
