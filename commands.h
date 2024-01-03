@@ -735,6 +735,7 @@ void deleteMusicCommand(std::string command, std::vector<User> *users, int *curr
 
     for (auto uit = users->begin(); uit != users->end(); ++uit)
     {
+        // remove from users playlists
         int sum = 0;
         for (auto pit = uit->playlists.begin(); pit != uit->playlists.end(); ++pit)
         {
@@ -744,6 +745,13 @@ void deleteMusicCommand(std::string command, std::vector<User> *users, int *curr
                 bool removeFromUserPlaylistMusics = removeAtIndex((*pit).musics, playlistMusicIndex);
                 pit->duration = secondsToTime(timeToSeconds(pit->duration) - timeToSeconds(toDeleteMusicDuration));
             }
+        }
+
+        // remove from users favorites
+        int favoritesMusicIndex = findMusicIndexById(uit->favorites, id);
+        if (favoritesMusicIndex != -1)
+        {
+            bool removeFromUserFavoriteMusics = removeAtIndex(uit->favorites, favoritesMusicIndex);
         }
     }
 
@@ -1087,15 +1095,19 @@ void getRecommendationsCommand(std::string command, std::vector<User> *users, in
         throw ErrorType::BAD_REQUEST_ERROR;
 
     std::vector<Music> filteredMusics;
-    for (const auto & music: *musics) {
+    for (const auto &music : *musics)
+    {
         bool isInLikes = false;
-        for (const auto likedMusic: (*users)[*currentUser].favorites) {
-            if (likedMusic.id == music.id) {
+        for (const auto likedMusic : (*users)[*currentUser].favorites)
+        {
+            if (likedMusic.id == music.id)
+            {
                 isInLikes = true;
                 break;
             }
         }
-        if (!isInLikes) filteredMusics.push_back(music);
+        if (!isInLikes)
+            filteredMusics.push_back(music);
     }
 
     std::vector<Music> recommendations = getRecommendedMusics(filteredMusics, 5);

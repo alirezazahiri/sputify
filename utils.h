@@ -249,7 +249,8 @@ std::vector<Music> getRecommendedMusics(const std::vector<Music> &musics, int ma
 {
     std::vector<Music> copiedMusics;
 
-    for (const auto &music : musics) {
+    for (const auto &music : musics)
+    {
         copiedMusics.push_back(music);
     }
     std::vector<Music> recommendedMusics;
